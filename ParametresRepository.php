@@ -45,7 +45,7 @@ class ParametresRepository extends ServiceEntityRepository
         }
     }
 
-    public function index($search, $fields, $sort, $direction, $deleted = false, $etat = null)
+    public function index($search, $fields, $sort, $direction, $categorie = null, $deleted = false, $etat = null)
     {
         $sort = is_null($sort) ? 'a.id' : $sort;
         $qb = $this->createQueryBuilder('a');
@@ -68,6 +68,9 @@ class ParametresRepository extends ServiceEntityRepository
             $ORX->add(join(' AND ', $ors));
         }
         $qb->andWhere($ORX);
+        if ($categorie != null)
+            $qb->andwhere($qb->expr()->isMemberOf(':categorie', 'a.categories'))->setParameter('categorie', $categorie);
+
         return $qb->orderBy($sort, strtoupper($direction))
             ->getQuery()
             ->getResult();
