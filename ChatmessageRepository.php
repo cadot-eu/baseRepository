@@ -2,7 +2,7 @@
 
 namespace App\Repository\base;
 
-use App\Entity\base\Chatmessage;
+use App\Entity\Chatmessage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
