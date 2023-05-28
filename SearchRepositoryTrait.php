@@ -19,12 +19,14 @@ trait SearchRepositoryTrait
         }
         $ORX = $qb->expr()->orx();
         foreach ($fields as $field) {
-            $ors = [];
-            foreach (explode(' ', $search) as $s) {
-                $s = str_replace("'", "''", $s);
-                $ors[] = $qb->expr()->orx("a.$field LIKE '%$s%' ");
+            if ($field != 'categories') {
+                $ors = [];
+                foreach (explode(' ', $search) as $s) {
+                    $s = str_replace("'", "''", $s);
+                    $ors[] = $qb->expr()->orx("a.$field LIKE '%$s%' ");
+                }
+                $ORX->add(join(' AND ', $ors));
             }
-            $ORX->add(join(' AND ', $ors));
         }
         $qb->andWhere($ORX);
         if ($categorie != null) {
@@ -46,7 +48,7 @@ trait SearchRepositoryTrait
      * @param deleted  If set to false or null, only non-deleted records will be returned.
      * @return ?array an array of results
      */
-    public function search(array $searchs = [], ?string $sort = 'id', ?string $direction = 'ASC', ?string $categorie = null, ?bool $deleted = false): ?array
+    public function search(array $searchs = [], ?string $sort = 'id', ?string $direction = 'ASC', ?string $categorie = null, ?bool $deleted = false, ?int $limit = 10): ?array
     {
         $qb = $this->createQueryBuilder('a');
         if ($deleted) {
@@ -74,7 +76,9 @@ trait SearchRepositoryTrait
         if ($categorie != null) {
             $qb->andwhere($qb->expr()->isMemberOf(':categorie', 'a.categories'))->setParameter('categorie', $categorie);
         }
-
+        if ($limit) {
+            $qb->setMaxResults($limit);
+        }
             return $qb->orderBy('a.' . $sort, strtoupper($direction))->getQuery()->getResult();
     }
 }
