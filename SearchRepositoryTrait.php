@@ -60,7 +60,7 @@ trait SearchRepositoryTrait
         //les recherches
          $ors = [];
            //si le field est composé de field séparé par des virgules
-        if (strlen($searchs[key($searchs)])) {
+        if ($searchs && strlen($searchs[key($searchs)])) {
             $search = $searchs[key($searchs)];
             foreach (explode(',', key($searchs)) as $field) {
                 $s = str_replace("'", "''", $search);
