@@ -19,14 +19,18 @@ trait SearchRepositoryTrait
         }
         $ORX = $qb->expr()->orx();
         foreach ($fields as $field) {
-            if ($field != 'categories') {
-                $ors = [];
-                foreach (explode(' ', $search) as $s) {
-                    $s = str_replace("'", "''", $s);
+            $ors = [];
+            foreach (explode(' ', $search) as $s) {
+                $s = str_replace("'", "''", $s);
+                if (strpos($field, '.') !== false) {
+                    $qb->leftJoin("a." . explode('.', $field)[0], 'sc');
+                    $fieldNameSupercat = 'sc.nom';
+                    $ors[] = $qb->expr()->orx("$fieldNameSupercat LIKE '%$s%' ");
+                } else {
                     $ors[] = $qb->expr()->orx("a.$field LIKE '%$s%' ");
                 }
-                $ORX->add(join(' AND ', $ors));
             }
+            $ORX->add(join(' AND ', $ors));
         }
         $qb->andWhere($ORX);
         if ($categorie != null) {
