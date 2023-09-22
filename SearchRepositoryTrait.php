@@ -25,7 +25,7 @@ trait SearchRepositoryTrait
      * search terms, fields to search in, sorting criteria, category, and deleted status. The result is
      * ordered by the specified sorting criteria and direction.
      */
-    public function index($search, $fields, $sort, $direction, $categorie = null, $deleted = false, $etat = null)
+    public function index($search, $fields, $sort, $direction, $categorie = null, $deleted = false, $etat = null, $conditions = [])
     {
         $sort = is_null($sort) ? 'a.id' : $sort;
         $qb = $this->createQueryBuilder('a');
@@ -53,6 +53,9 @@ trait SearchRepositoryTrait
             $ORX->add(join(' AND ', $ors));
         }
         $qb->andWhere($ORX);
+        foreach ($conditions as $key => $value) {
+            $qb->andwhere($qb->expr()->eq('a.' . $key, ':val'))->setParameter('val', $value);
+        }
         if ($categorie != null) {
             $qb->andwhere($qb->expr()->isMemberOf(':categorie', 'a.categories'))->setParameter('categorie', $categorie);
         }
