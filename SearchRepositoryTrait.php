@@ -123,11 +123,11 @@ trait SearchRepositoryTrait
      * are passed as a semicolon-separated string and are used to filter the results using the Doctrine
      * ORM's MEMBER OF operator. If no results are found, the function returns null.
      */
-    public function findByCategories(string $categories, string $order = 'DESC', int $limit = 10): ?array
+    public function findByCategories(string $categories, string $order = 'DESC', int $limit = 10, ?string $categorieTrie = 'createdAt'): ?array
     {
         $qb = $this->createQueryBuilder('a');
         $qb->where('a.deletedAt IS NULL');
-        $qb->orderBy('a.createdAt', $order);
+        $qb->orderBy('a.' . $categorieTrie, $order);
         $qb->setMaxResults($limit);
         foreach (explode(';', $categories) as $key => $categorie) {
             $qb->orWhere(':categorie' . $key . ' MEMBER OF a.categories');
