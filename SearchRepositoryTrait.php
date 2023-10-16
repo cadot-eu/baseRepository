@@ -136,6 +136,7 @@ trait SearchRepositoryTrait
         return $qb->getQuery()->getResult();
     }
 
+
     /**
      * This PHP function finds entities by category with a limit on the number of results.
      *
