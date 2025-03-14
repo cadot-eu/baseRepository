@@ -161,4 +161,66 @@ trait SearchRepositoryTrait
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Recherche avancée avec filtres, tri et pagination pour Symfony 7.2 avec PostgreSQL
+     *
+     * @param array $searchs Critères de recherche sous forme [champ => valeur]
+     * @param string|null $sort Champ de tri (défaut: 'id')
+     * @param string|null $direction Direction du tri (ASC ou DESC, défaut: 'ASC')
+     * @param string|null $categorie Catégorie optionnelle
+     * @param bool|null $deleted Inclure les éléments supprimés
+     * @param int|null $limit Nombre maximum de résultats (défaut: 10)
+     * @return array|null Liste des résultats
+     */
+    public function nsearch(array $searchs = [], ?string $sort = 'id', ?string $direction = 'ASC', ?string $categorie = null, ?bool $deleted = false, ?int $limit = 10): ?array
+    {
+        $qb = $this->createQueryBuilder('e');
+
+        // Gestion des éléments supprimés (si votre entité utilise un soft delete)
+        if ($deleted) {
+            $qb->andWhere('e.deletedAt IS NOT NULL');
+        } else {
+            $qb->andWhere('e.deletedAt IS NULL');
+        }
+
+        // Traitement des critères de recherche
+        foreach ($searchs as $field => $value) {
+            if ($value !== null && $value !== '') {
+                if (is_array($value)) {
+                    // Si la valeur est un tableau, on utilise IN
+                    $qb->andWhere("e.$field IN (:$field)")
+                        ->setParameter($field, $value);
+                } else if (is_string($value)) {
+                    // Pour les chaînes, on utilise ILIKE pour PostgreSQL (insensible à la casse)
+                    $qb->andWhere("e.$field ILIKE :$field")
+                        ->setParameter($field, '%' . $value . '%');
+                } else {
+                    // Pour les autres types, on fait une comparaison directe
+                    $qb->andWhere("e.$field = :$field")
+                        ->setParameter($field, $value);
+                }
+            }
+        }
+
+        // Gestion de la catégorie (si relation ManyToMany ou ManyToOne)
+        if ($categorie !== null) {
+            $qb->andWhere(':categorie MEMBER OF e.categories')
+                ->setParameter('categorie', $categorie);
+        }
+
+        // Tri (avec validation du champ)
+        $metadata = $this->getEntityManager()->getClassMetadata($this->getEntityName());
+        $validSort = $metadata->hasField($sort) ? $sort : 'id';
+        $validDirection = in_array(strtoupper($direction), ['ASC', 'DESC']) ? strtoupper($direction) : 'ASC';
+
+        $qb->orderBy("e.$validSort", $validDirection);
+
+        // Limitation du nombre de résultats
+        if ($limit > 0) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
