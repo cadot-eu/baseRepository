@@ -12,7 +12,7 @@ trait SearchRepositoryTrait
      *
      * @param int $page Page actuelle
      * @param int $limit Nombre d'éléments par page
-     * @param string $search Terme de recherche
+     * @param string|null $search Terme de recherche
      * @param array $fields Champs de recherche
      * @param string $sort Champ de tri
      * @param string $direction Direction du tri
@@ -26,7 +26,7 @@ trait SearchRepositoryTrait
     public function search(
         int $page = 1,
         int $limit = 10,
-        string $search = '',
+        string|null $search = '',
         array $fields = ['id'],
         string $sort = 'id',
         string $direction = 'ASC',
